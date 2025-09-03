@@ -36,7 +36,7 @@ public class ItemFrameProcessor extends StructureProcessor {
             // Type depends on the item currently in the frame
             String item;
             try {
-                item = globalEntityInfo.nbt.getCompound("Item").get("id").toString();
+                item = globalEntityInfo.nbt.getCompoundOrEmpty("Item").get("id").toString();
             } catch (Exception e) {
                 BetterDesertTemplesCommon.LOGGER.info("Unable to randomize item frame at {}", globalEntityInfo.blockPos);
                 return globalEntityInfo;
@@ -53,14 +53,14 @@ public class ItemFrameProcessor extends StructureProcessor {
             if (item.equals("\"minecraft:iron_sword\"")) { // Armory pool
                 String randomItemString = BuiltInRegistries.ITEM.getKey(ItemFrameChances.get().getArmouryItem(randomSource)).toString();
                 if (!randomItemString.equals("minecraft:air")) {
-                    newNBT.getCompound("Item").putString("id", randomItemString);
+                    newNBT.getCompoundOrEmpty("Item").putString("id", randomItemString);
                 } else {
                     newNBT.remove("Item");
                 }
             } else if (item.equals("\"minecraft:bread\"")) { // Storage pool
                 String randomItemString = BuiltInRegistries.ITEM.getKey(ItemFrameChances.get().getStorageItem(randomSource)).toString();
                 if (!randomItemString.equals("minecraft:air")) {
-                    newNBT.getCompound("Item").putString("id", randomItemString);
+                    newNBT.getCompoundOrEmpty("Item").putString("id", randomItemString);
                 } else {
                     newNBT.remove("Item");
                 }

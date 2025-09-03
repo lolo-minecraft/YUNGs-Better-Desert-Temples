@@ -37,6 +37,10 @@ repositories {
         filter { includeGroup('org.parchmentmc.data') }
     }
     maven {
+        name "nexusrealmsReleases"
+        url "https://maven.riftrealms.de/releases"
+    }
+    maven {
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
     }

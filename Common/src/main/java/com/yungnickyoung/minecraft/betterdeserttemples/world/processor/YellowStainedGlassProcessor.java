@@ -45,7 +45,7 @@ public class YellowStainedGlassProcessor extends StructureProcessor {
             while (mutable.getY() > levelReader.getMinY()
                     && mutable.getY() < levelReader.getMaxY()
                     && (currBlockState.isAir() || !levelReader.getFluidState(mutable).isEmpty())) {
-                levelReader.getChunk(mutable).setBlockState(mutable, Blocks.SANDSTONE.defaultBlockState(), false);
+                levelReader.getChunk(mutable).setBlockState(mutable, Blocks.SANDSTONE.defaultBlockState(), 2);
                 mutable.move(Direction.DOWN);
                 currBlockState = levelReader.getBlockState(mutable);
             }

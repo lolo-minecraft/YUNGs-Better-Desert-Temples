@@ -37,10 +37,10 @@ public class PurpurPillarProcessor extends StructureProcessor implements ISafeWo
         if (blockInfoGlobal.state().getBlock() == Blocks.PURPUR_PILLAR) {
             BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().mutable();
             BlockState blockState = Blocks.SANDSTONE_WALL.defaultBlockState()
-                    .setValue(WallBlock.EAST_WALL, WallSide.NONE)
-                    .setValue(WallBlock.WEST_WALL, WallSide.NONE)
-                    .setValue(WallBlock.NORTH_WALL, WallSide.NONE)
-                    .setValue(WallBlock.SOUTH_WALL, WallSide.NONE)
+                    .setValue(WallBlock.EAST, WallSide.NONE)
+                    .setValue(WallBlock.WEST, WallSide.NONE)
+                    .setValue(WallBlock.NORTH, WallSide.NONE)
+                    .setValue(WallBlock.SOUTH, WallSide.NONE)
                     .setValue(WallBlock.UP, true)
                     .setValue(WallBlock.WATERLOGGED, false);
             for (int i = 0; i < 8; i++) {

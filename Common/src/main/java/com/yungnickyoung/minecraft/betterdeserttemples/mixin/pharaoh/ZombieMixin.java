@@ -6,33 +6,34 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
+import java.util.Optional;
+
 @Mixin(Zombie.class)
 public class ZombieMixin {
     @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
-    private void betterdeserttemples_readPharaohOriginalSpawnPosFromNbt(CompoundTag compoundTag, CallbackInfo info) {
+    private void betterdeserttemples_readPharaohOriginalSpawnPosFromNbt(ValueInput valueInput, CallbackInfo ci) {
         if (PharaohUtil.isPharaoh(this)) {
-            ListTag originalSpawnPos = compoundTag.getList("bdtOriginalSpawnPos", ListTag.TAG_DOUBLE);
-
-            if (originalSpawnPos.size() != 3) {
+            List<ValueInput> originalSpawnPos = valueInput.childrenListOrEmpty("bdtOriginalSpawnPos").stream().toList();
+            Optional<Vec3> vec3 = valueInput.read("bdtOriginalSpawnPos", Vec3.CODEC);
+            if (vec3.isEmpty()) {
 //                BetterDesertTemplesCommon.LOGGER.error("Pharaoh entity is missing original spawn position data. Unable to read original spawn position.");
                 return;
             }
-
-            double spawnX = originalSpawnPos.getDouble(0);
-            double spawnY = originalSpawnPos.getDouble(1);
-            double spawnZ = originalSpawnPos.getDouble(2);
-            ((IPharaohData) this).setOriginalSpawnPos(new Vec3(spawnX, spawnY, spawnZ));
+            ((IPharaohData) this).setOriginalSpawnPos(vec3.get());
         }
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("HEAD"))
-    private void betterdeserttemples_writePharaohOriginalSpawnPosToNbt(CompoundTag compoundTag, CallbackInfo info) {
+    private void betterdeserttemples_writePharaohOriginalSpawnPosToNbt(ValueOutput valueOutput, CallbackInfo ci) {
         if (PharaohUtil.isPharaoh(this)) {
             Vec3 originalSpawnPos = ((IPharaohData) this).getOriginalSpawnPos();
 
@@ -41,11 +42,7 @@ public class ZombieMixin {
                 return;
             }
 
-            ListTag originalSpawnPosList = new ListTag();
-            originalSpawnPosList.add(DoubleTag.valueOf(originalSpawnPos.x));
-            originalSpawnPosList.add(DoubleTag.valueOf(originalSpawnPos.y));
-            originalSpawnPosList.add(DoubleTag.valueOf(originalSpawnPos.z));
-            compoundTag.put("bdtOriginalSpawnPos", originalSpawnPosList);
+            valueOutput.store("bdtOriginalSpawnPos", Vec3.CODEC, originalSpawnPos);
         }
     }
 }
