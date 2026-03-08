@@ -1,28 +1,118 @@
 plugins {
-    id 'fabric-loom' version '1.10-SNAPSHOT' apply false
-    id "org.jetbrains.gradle.plugin.idea-ext" version "1.1.7" // required for NeoGradle
-    id 'org.spongepowered.mixin' version '0.7-SNAPSHOT' apply false
-    id 'net.darkhax.curseforgegradle' version "${curseforgegradle_version}" apply false // curseforge publishing
-    id "com.modrinth.minotaur" version "2.+" apply false // modrinth publishing
+    id 'fabric-loom' version "${loom_version}"
 }
 
-subprojects {
-    configurations.all {
-        resolutionStrategy {
-            cacheChangingModulesFor 60, 'seconds'
-            cacheDynamicVersionsFor 60, 'seconds'
+version = project.version
+group = project.maven_group
+
+base {
+    archivesName = project.mod_id
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://maven.parchmentmc.org" }
+    maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
+}
+
+loom {
+    def aw = file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+
+    mixin {
+        useLegacyMixinAp = true
+        defaultRefmapName.set("${project.mod_id}.refmap.json")
+    }
+
+    runs {
+        client {
+            client()
+            runDir('runs/client')
+        }
+        server {
+            server()
+            runDir('runs/server')
         }
     }
-    // Pass the raw project version string as an extra property to each subproject
-    // since the version property will be overwritten by the complete version string
-    ext {
-        rawVersion = project.version
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.mc_version}"
+
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.parchment_minecraft}:${project.parchment_version}@zip")
+    }
+
+    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    modImplementation files("libs/yungsapi-${yungsapi_version}.jar")
+
+    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+
+    modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
+
+    implementation("org.reflections:reflections:0.10.2")
+    include("org.reflections:reflections:0.10.2")
+
+    implementation("io.github.llamalad7:mixinextras-fabric:0.5.3")
+    annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.3")
+
+    compileOnly 'org.jetbrains:annotations:26.0.2-1'
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mod_id", project.mod_id
+    inputs.property "mod_description", project.mod_description
+    inputs.property "mod_full_name", project.mod_full_name
+    inputs.property "license", project.license
+    inputs.property "mc_version", project.mc_version
+    inputs.property "fabric_version", project.fabric_version
+    inputs.property "fabric_loader_version", project.fabric_loader_version
+    inputs.property "java_version", project.java_version
+    inputs.property "mc_version_range_fabric", project.mc_version_range_fabric
+    inputs.property "clothconfig_version_fabric", project.cloth_config_version
+    inputs.property "yungsapi_version", project.yungsapi_version
+    inputs.property "modmenu_version_fabric", project.modmenu_version
+
+    filesMatching("fabric.mod.json") {
+        expand(
+            "version": project.version,
+            "mod_id": project.mod_id,
+            "mod_full_name": project.mod_full_name,
+            "mod_description": project.mod_description,
+            "license": project.license,
+            "mc_version": project.mc_version,
+            "fabric_version": project.fabric_version,
+            "fabric_loader_version": project.fabric_loader_version,
+            "java_version": project.java_version,
+            "mc_version_range_fabric": project.mc_version_range_fabric,
+            "clothconfig_version_fabric": project.cloth_config_version,
+            "modmenu_version_fabric": project.modmenu_version,
+            "yungsapi_version": project.yungsapi_version,
+        )
     }
 }
 
-task publishCurseForge(dependsOn: [':Fabric:publishCurseForgeFabric', ':NeoForge:publishCurseForgeNeoForge']) {
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
 }
-task publishModrinth(dependsOn: [':Fabric:modrinth', ':NeoForge:modrinth']) {
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
-task publishCurseAndModrinth(dependsOn: ['publishCurseForge', 'publishModrinth']) {
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}"}
+    }
 }
